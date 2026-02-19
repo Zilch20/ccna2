@@ -1,0 +1,278 @@
+!@UTM-PH not pingable block cucm
+config t 
+ no ip access-list extended FWP1
+ ip access-list extended FWP1
+  deny ip  host 10.11.100.8  host 10.21.1.11  log
+  permit ip any any
+  exit
+ !
+ int gi 4
+  ip access-group FWP1 in
+  end
+show ip access-list int g4
+
+!@UTM-PH to be pingable
+conf t
+ int g4
+  no ip access-group FWP1 in
+  end
+  
+  conf t
+ip route 10.0.0.0 255.0.0.0 10.11.1.4
+ip route 200.0.0.0 255.255.255.0 10.11.1.4
+
+
+!@UTM-PH block edge and pc
+config t
+ no ip access-list extended FWP2
+ ip access-list extended FWP2
+  deny ip  host  10.11.1.10    host 10.11.1.11  log
+  deny ip  host  10.11.11.1    host 10.11.1.11  log
+  
+  permit ip any any
+  exit
+ !
+ int gi 4
+  ip access-group FWP2 in
+  end
+show ip access-list int g4
+
+66.254.114.238 redtube   66.254.114.0   0.0.0.255
+66.254.114.79 youporn
+66.254.114.41 pornhub
+66.254.114.234 faketaxi
+104.21.5.229 bangbus    host 104.21.5.229   
+172.67.146.93 pinayflix host 172.67.146.93
+172.237.146.25 jaboltv  host 172.237.146.25
+208.77.20.35 iyottube   host 208.77.20.35
+
+
+host 66.254.114.0   0.0.0.255
+host 104.21.5.229   
+host 172.67.146.93
+host 172.237.146.25
+host 208.77.20.35
+
+
+!@UTM-PH Block mo mga porn
+config t
+ no ip access-list standard NOPORN
+ ip access-list standard NOPORN
+  deny 66.254.114.0 0.0.0.255
+  deny host 104.21.5.229   
+  deny host 172.67.146.93
+  deny host 172.237.146.25
+  deny host 208.77.20.35 
+  
+  permit ip any
+  exit
+ !
+ int gi 1
+  ip access-group NOPORN in
+  end
+show ip access-list int g1
+
+!@UTM-PH unBlock mo mga porn
+conf t
+ int g1
+  no ip access-group NOPORN in
+  end
+  
+  
+  config t
+ no ip access-list standard NOTOR
+ ip access-list standard NOTOR
+  deny 162.159.0.0  0.0.255.255
+  deny 172.67.0.0   0.0.255.255
+  deny 76.223.0.0   0.0.255.255
+  deny 104.21.0.0   0.0.255.255
+  deny 104.26.0.0   0.0.255.255
+  
+  permit any
+  exit
+ !
+ int gi 1
+  ip access-group NOTOR in
+  end
+  
+  
+ conf t
+  int g1
+   no ip access-group NOTOR in
+  end
+  
+  
+  208.8.8.11 bet11.com
+  208.8.8100 Bet100.com
+  
+ !@UTM-PH
+config t
+ ip host bet11.com 208.8.8.11
+ service finger
+ service tcp-small-servers
+ service udp-small-servers
+ ip dns server
+ ip http server
+ ip http secure-server
+ telephony-service
+  no auto-reg-ephone
+  max-ephones 5
+  max-dn 20
+  ip source-address 208.8.8.11 port 2000
+  exit
+ voice service voip
+  allow-connections h323 to sip
+          
+  allow-connections sip to h323
+  allow-connections sip to sip
+  supplementary-service h450.12
+ sip
+   bind control source-interface g4
+   bind media source-interface g4
+   registrar server expires max 600 min 60
+ voice register global
+  mode cme
+  source-address 208.8.8.11 port 5060
+  max-dn 12
+  max-pool 12
+  authenticate register
+  create profile sync syncinfo.xml
+  end
+ 
+ 
+@utm-PH  open specific ports
+
+ config t 
+ no ip access-list extended FWP10
+ ip access-list extended FWP10
+  permit tcp any host bet11.com  eq 22 log
+  permit icmp any host bet11.com log
+  permit tcp any host bet11.com  eq 5060 log
+  permit tcp any host bet11.com  eq 2000 log
+  permit tcp any host bet11.com  eq 53 log
+  exit
+ !
+ int gi 1
+  ip access-group FWP10 in
+  end
+show ip access-list int g1
+
+
+@utm-PH  open all ports
+conf t
+ int g1
+  no ip access-group FWP10 in
+  end
+  
+@utm-PH  open telnet, ftp, smtp, MySql, http, https ports
+
+ config t 
+ no ip access-list extended FWP11
+ ip access-list extended FWP11
+  permit tcp any host bet11.com  eq 23   log
+  permit tcp any host bet11.com  eq 21   log
+  permit tcp any host bet11.com  eq 25   log
+  permit tcp any host bet11.com  eq 3306 log
+  permit tcp any host bet11.com  eq 80   log
+  permit tcp any host bet11.com  eq 443  log
+  exit
+ !
+ int gi 1
+  ip access-group FWP11 in
+  end
+show ip access-list int g1
+  
+@utm-PH  open all ports
+conf t
+ int g1
+  no ip access-group FWP11 in
+  end
+ 
+Task 4: Create an extended ACL for `www.bet11.com` that will open the following ports
+SIP, SSH, HTTPS, DNS, SUBMISSION, IMAPS, POP3S, SMTPS, SNMP
+
+
+config t 
+ no ip access-list extended FWP11
+ ip access-list extended FWP11
+ 
+  permit tcp any host bet11.com  eq 5060   log
+  permit tcp any host bet11.com  eq 22   log
+  permit tcp any host bet11.com  eq 443   log
+  permit tcp any host bet11.com  eq 53  log
+  permit tcp any host bet11.com  eq 587  log
+  permit tcp any host bet11.com  eq 993  log
+  permit tcp any host bet11.com  eq 995  log
+  permit tcp any host bet11.com  eq 465  log
+  permit tcp any host bet11.com  eq 161  log
+  exit
+ !
+ int gi 1
+  ip access-group FWP11 in
+  end
+show ip access-list int g1
+
+int gi 1
+  no ip access-group FWP11 in
+  end
+show ip access-list int g1
+
+
+@UTM-PH
+
+conf t
+ int g1
+  ip nat outside
+ int g3
+  ip nat inside
+ !
+ no ip access-list extended NAT
+ ip access-list extended NAT
+  deny ip 11.11.11.96 0.0.0.31  21.21.21.208 0.0.0.15
+  deny ip 11.11.11.96 0.0.0.31  22.22.22.192 0.0.0.63
+  permit ip any any
+  exit
+ !
+ ip nat inside source list NAT int g1 overload
+ !
+ no ip nat inside source static tcp  11.11.11.111  80  208.8.8.100  8080
+ end
+ 
+ @UTM-PH
+ conf t
+  ip nat inside source static tcp  11.11.11.111  80  208.8.8.100  8080
+ end
+ 
+
+ conf t
+ int g4
+   no ip nat inside source static tcp  10.11.1.8  23  208.8.8.99  2000
+   ip nat inside source static tcp  10.11.1.4  23  208.8.8.100  2000
+   ip nat inside source static tcp  10.11.1.  23  208.8.8.100  2000
+ end
+ 
+ 
+ 
+ conf t
+ no router ospf 1
+ router ospf 1
+  router-id 11.0.0.1
+  network 10.11.11.0 0.0.0.255 area 0
+  network 11.0.0.1       0.0.0.0   area 0
+  default-information originate always
+  end
+  
+  !@EDGE-11
+conf t
+ ip nat inside source static tcp  10.11.1.4  23  200.0.0.11  4023
+ !
+ no ip nat inside source static tcp  10.11.100.8  23  200.0.0.12    1998
+ no ip nat inside source static tcp  10.11.1.6  22  200.0.0.21    1998
+ ip nat inside source static tcp  10.11.100.8  23  200.0.0.11    1998
+ ip nat inside source static tcp  10.11.1.6  22  200.0.0.11    1999
+
+ end
+ conf t
+ no ip nat inside source static tcp  0.0.0.0  0.0.0.0  208.8.8.2
+ 
+ 
